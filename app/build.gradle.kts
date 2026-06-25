@@ -59,9 +59,15 @@ chaquopy {
         // No local/cross-compiled wheels needed — everything resolves from
         // Chaquopy's Android wheel repo (native) or PyPI (pure-Python).
         version = "3.12"
-        buildPython("/home/ubuntu/.local/share/uv/python/cpython-3.12.13-linux-x86_64-gnu/bin/python3.12")
+        buildPython("/home/tomas/.local/share/mise/installs/python/3.12.13/bin/python")
         pip {
             options("--no-deps")
+            install("pyatv==0.16.1")
+            install("aiohttp")
+            install("chaquopy-libffi")
+            install("cffi")
+            install("cryptography")
+            install("miniaudio")
             install("-r", "requirements.txt")
         }
     }
