@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ATV Remote</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_welcome_title">Welcome to ATV Remote</string>
+    <string name="onboarding_welcome_desc">Control your Apple TV right from your phone.</string>
+    <string name="onboarding_get_started">Get Started</string>
+    <string name="onboarding_setup_remote">Set Up Your Remote</string>
+    <string name="onboarding_permission_network_desc">ATV Remote needs local network access to discover and communicate with your Apple TV.</string>
+    <string name="onboarding_local_network">Local Network Access</string>
+    <string name="onboarding_local_network_desc">Required to find Apple TVs on your Wi-Fi network.</string>
+    <string name="onboarding_grant_access">Grant Access</string>
+    <string name="scanning">Scanning…</string>
+    <string name="onboarding_devices_found">Devices found</string>
+    <string name="onboarding_no_devices_found">No devices found</string>
+    <string name="onboarding_try_again">Try Again</string>
+    <string name="onboarding_manual_ip">Manual IP</string>
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_select_tv">Select your Apple TV</string>
+    <string name="onboarding_show_all">Show all devices</string>
+    <string name="onboarding_rescan">Rescan</string>
+    <string name="onboarding_all_set">All Set!</string>
+    <string name="onboarding_all_set_desc">Your remote is ready to use.</string>
+    <string name="onboarding_lets_go">Let\'s Go</string>
+
+    <!-- AirPlay help -->
+    <string name="help_wifi_check">Check that your Apple TV and phone are on the same Wi-Fi network.</string>
+    <string name="help_airplay_instruction_1">Make sure your Apple TV is powered on and awake.</string>
+    <string name="help_airplay_instruction_2">Verify AirPlay is enabled in Apple TV settings.</string>
+    <string name="help_airplay_instruction_3">If you still can\'t find it, try entering the IP address manually.</string>
+    <string name="help_airplay_support_link">AirPlay support link</string>
+    <string name="help_airplay_title">Can\'t find your Apple TV?</string>
+    <string name="help_airplay_desc">Try these steps to get discovered.</string>
+    <string name="help_pin_title">Having trouble with the PIN?</string>
+    <string name="help_pin_desc">Follow these steps to enter the PIN correctly.</string>
+    <string name="help_pin_instruction_1">On your Apple TV, a 4-digit PIN should appear.</string>
+    <string name="help_pin_instruction_2">Enter exactly the digits shown on screen.</string>
+    <string name="help_pin_instruction_3">If the PIN expires, cancel and start pairing again.</string>
+
+    <!-- Pairing -->
+    <string name="pair_with_apple_tv">Pair with Apple TV</string>
+    <string name="pair_enter_pin">Enter the PIN shown on %1$s</string>
+    <string name="pair_cancel">Cancel</string>
+    <string name="pair_pair">Pair</string>
+
+    <!-- Troubleshooting / Manual IP -->
+    <string name="manual_connection">Manual Connection</string>
+    <string name="manual_connection_desc">Enter the IP address of your Apple TV to connect directly.</string>
+    <string name="manual_ip_enter">Enter IP Manually</string>
+    <string name="manual_ip_hint">Settings > Network</string>
+    <string name="manual_ip_placeholder">192.168.1.x</string>
+    <string name="manual_ip_connect">Connect</string>
+
+    <!-- Main screen -->
+    <string name="not_connected">Not Connected</string>
+    <string name="device_sheet_title">Devices</string>
+    <string name="scan_for_devices">Scan for Devices</string>
+    <string name="device_connect">Connect</string>
+    <string name="device_pair">Pair</string>
+    <string name="device_no_credentials">⚠️ No saved credentials — pair first</string>
+    <string name="device_saved_credentials">🔑 Saved: %1$s</string>
+    <string name="device_show_all">Show all devices</string>
+
+    <!-- App launcher -->
+    <string name="apps_title">Apps</string>
+    <string name="apps_search_placeholder">Search apps…</string>
+    <string name="apps_no_apps_found">No apps found</string>
+    <string name="apps_no_matching">No matching apps</string>
+
+    <!-- Keyboard -->
+    <string name="keyboard_title">Apple TV Input</string>
+    <string name="keyboard_placeholder">Type to send…</string>
+    <string name="keyboard_send">Send</string>
+    <string name="keyboard_hide">Hide</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_display">Display</string>
+    <string name="settings_show_media_player_card">Show Media Player Card</string>
+    <string name="settings_show_media_player_card_desc">Display now playing details and control media</string>
+    <string name="settings_show_media_notification">Show Media Notification</string>
+    <string name="settings_show_media_notification_desc">Show playback controls in notification center</string>
+    <string name="settings_touchpad_at_bottom">Move Touchpad to Bottom</string>
+    <string name="settings_touchpad_at_bottom_desc">Keep the touchpad within easy reach at the bottom</string>
+    <string name="settings_use_volume_buttons">Use Volume Buttons</string>
+    <string name="settings_use_volume_buttons_desc">Control Apple TV volume with phone buttons</string>
+    <string name="settings_reset_tutorial">Reset Tutorial</string>
+    <string name="settings_reset_tutorial_desc">Show the welcome screen again</string>
+    <string name="settings_appearance">Appearance</string>
+    <string name="settings_appearance_desc">Customize app look and feel</string>
+    <string name="settings_reset_pair_state">Reset Pair State</string>
+    <string name="settings_reset_pair_state_desc">Forget all paired devices</string>
+
+    <!-- Theme -->
+    <string name="theme_title">Appearance</string>
+    <string name="theme_system">System Default</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="theme_amoled">True Black</string>
+</resources>
