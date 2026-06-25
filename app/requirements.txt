@@ -1,0 +1,59 @@
+# Requirements for pyatv 0.16.1 with --no-deps.
+#
+# pyatv 0.16.1 declares cryptography>=44.0.1 and chacha20poly1305-reuseable
+#>=0.13.2 (which needs cryptography>=43.0.0). Neither has an Android wheel on
+# Chaquopy beyond 42.0.8. However, the cryptography APIs pyatv actually uses
+# (ed25519, x25519, HKDF, Cipher, serialization) are stable since
+# cryptography 2.x, so 42.0.8 works at runtime. chacha20poly1305-reuseable
+# 0.13.2 is a one-liner re-export of cryptography's ChaCha20Poly1305.
+#
+# pyatv 0.16.1 is the latest version that still allows pydantic 1.x
+# (>=1.10.10), which is pure Python and has no pydantic-core dependency.
+# pyatv 0.17.0+ requires pydantic>=2.0.0, which pulls in pydantic-core
+# (a Rust native extension with no Android wheel on Chaquopy).
+#
+# We use --no-deps globally (set in build.gradle.kts) and list every package
+# in the full dependency tree explicitly, so pip's resolver doesn't reject
+# the "incompatible" version pins. No local/cross-compiled wheels needed.
+
+# --- pyatv itself ---
+pyatv==0.16.1
+
+# --- Native packages (from Chaquopy's Android wheel repository) ---
+cryptography==42.0.8
+aiohttp>=3.8.3,<5
+miniaudio>=1.45
+cffi>=1.12.0
+frozenlist>=1.1.1
+multidict>=4.5,<7.0
+yarl>=1.9.0,<2.0
+
+# --- Pure-Python packages (from PyPI) ---
+chacha20poly1305-reuseable==0.13.2
+ifaddr>=0.1.7
+protobuf>=6.31.1
+pydantic>=1.10.10,<2
+requests>=2.30.0
+srptools>=0.2.0
+tabulate>=0.9.0
+tinytag>=1.10.0
+zeroconf>=0.129.0
+async-timeout>=4.0.2; python_version < "3.11"
+
+# aiohttp sub-dependencies
+aiohappyeyeballs>=2.5.0
+aiosignal>=1.4.0
+attrs>=17.3.0
+propcache>=0.2.0
+
+# requests sub-dependencies
+charset-normalizer>=2,<4
+idna>=2.5,<4
+urllib3>=1.26,<3
+certifi>=2023.5.7
+
+# pydantic 1.x sub-dependency
+typing-extensions>=4.2.0
+
+# cffi sub-dependency
+pycparser>=2.20

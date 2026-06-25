@@ -41,17 +41,28 @@ android {
 
 chaquopy {
     defaultConfig {
-        // pyatv 0.13.0 is the last release without a pydantic dependency.
-        // pyatv 0.14.0+ pulls in pydantic -> pydantic-core, which has no
-        // Android wheel on Chaquopy's repository and cannot be built from
-        // source on Android (requires Rust/maturin). 0.13.0's
-        // cryptography>=36.0.2 is satisfied by cryptography 42.0.8 (the
-        // newest version Chaquopy ships Android wheels for).
+        // Python 3.12 (broadest Android wheel coverage on Chaquopy).
+        //
+        // pyatv 0.16.1 is the latest release that still allows pydantic 1.x
+        // (>=1.10.10), which is pure Python with no pydantic-core dependency.
+        // pyatv 0.17.0+ requires pydantic>=2.0.0 → pydantic-core (Rust native
+        // extension, no Android wheel on Chaquopy).
+        //
+        // pyatv 0.16.1 declares cryptography>=44.0.1 and chacha20poly1305-
+        // reuseable>=0.13.2 (→ cryptography>=43.0.0), but the actual APIs
+        // used (ed25519, x25519, HKDF, ChaCha20Poly1305, serialization) are
+        // stable since cryptography 2.x, so 42.0.8 (the newest Chaquopy
+        // ships) works at runtime. We use --no-deps globally and list every
+        // package in the full dependency tree in requirements.txt so pip's
+        // resolver doesn't reject the "incompatible" version pins.
+        //
+        // No local/cross-compiled wheels needed — everything resolves from
+        // Chaquopy's Android wheel repo (native) or PyPI (pure-Python).
         version = "3.12"
         buildPython("/home/ubuntu/.local/share/uv/python/cpython-3.12.13-linux-x86_64-gnu/bin/python3.12")
         pip {
-            install("pyatv==0.13.0")
-            install("cryptography==42.0.8")
+            options("--no-deps")
+            install("-r", "requirements.txt")
         }
     }
     sourceSets {
