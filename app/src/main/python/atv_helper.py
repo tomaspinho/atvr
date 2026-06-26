@@ -236,11 +236,15 @@ def connect_to_device_sync(identifier: str, credentials: str = None) -> str:
 
     _connected_devices[identifier] = atv
 
-    # Start push updater if available.
+    # Start push updater if available (must run on the asyncio loop).
     try:
         features = atv.features
         if features.in_state(FeatureState.Available, FeatureName.PushUpdates):
-            atv.push_updater.start()
+
+            async def _start_push():
+                atv.push_updater.start()
+
+            _run_sync(_start_push())
     except Exception as exc:  # pragma: no cover
         print(f"atv_helper push start skipped: {exc}")
 
@@ -345,14 +349,17 @@ def send_remote_command_sync(identifier: str, command: str, action: str = "press
     if method is None:
         return _error(f"Command {command} not found")
 
-    try:
+    async def _run_command():
         sig = inspect.signature(method)
         if "action" in sig.parameters:
             result = method(action=input_action)
         else:
             result = method()
         if inspect.isawaitable(result):
-            _run_sync(result)
+            await result
+
+    try:
+        _run_sync(_run_command())
     except Exception as exc:
         return _error(f"Command {command} failed: {exc}")
     return _ok(command=command, action=action)

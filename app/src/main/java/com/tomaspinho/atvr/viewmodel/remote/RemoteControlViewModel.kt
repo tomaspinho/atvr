@@ -88,8 +88,10 @@ class RemoteControlViewModel(private val repository: DeviceRepository) : ViewMod
             val result = repository.sendRemoteCommand(id, command, action)
             if (result.isFailure) {
                 // Explicit reconnect on dropped connection, then retry once.
-                repository.connectToDevice(id)
-                repository.sendRemoteCommand(id, command, action)
+                val reconnect = repository.connectToDevice(id)
+                if (reconnect.isSuccess) {
+                    repository.sendRemoteCommand(id, command, action)
+                }
             }
         }
     }
