@@ -234,6 +234,14 @@ def connect_to_device_sync(identifier: str, credentials: str = None) -> str:
     except Exception as exc:
         return _error(f"Connect failed: {exc}")
 
+    # Close any existing session for this device before replacing it.
+    old = _connected_devices.get(identifier)
+    if old is not None:
+        try:
+            _run_sync(old.close())
+        except Exception:
+            pass
+
     _connected_devices[identifier] = atv
 
     # Start push updater if available (must run on the asyncio loop).

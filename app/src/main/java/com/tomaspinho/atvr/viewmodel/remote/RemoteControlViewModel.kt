@@ -27,7 +27,8 @@ data class RemoteControlUiState(
     val isConnected: Boolean = false,
     val mediaInfo: MediaInfo? = null,
     val powerState: PowerState = PowerState.UNKNOWN,
-    val volumeFeedback: VolumeFeedbackState = VolumeFeedbackState()
+    val volumeFeedback: VolumeFeedbackState = VolumeFeedbackState(),
+    val toast: String? = null
 )
 
 /**
@@ -87,11 +88,8 @@ class RemoteControlViewModel(private val repository: DeviceRepository) : ViewMod
         viewModelScope.launch {
             val result = repository.sendRemoteCommand(id, command, action)
             if (result.isFailure) {
-                // Explicit reconnect on dropped connection, then retry once.
-                val reconnect = repository.connectToDevice(id)
-                if (reconnect.isSuccess) {
-                    repository.sendRemoteCommand(id, command, action)
-                }
+                val errorMsg = result.exceptionOrNull()?.message ?: "Command failed"
+                _uiState.update { it.copy(toast = errorMsg) }
             }
         }
     }
@@ -125,6 +123,10 @@ class RemoteControlViewModel(private val repository: DeviceRepository) : ViewMod
 
     fun hideVolumeFeedback() {
         _uiState.update { it.copy(volumeFeedback = it.volumeFeedback.copy(visible = false)) }
+    }
+
+    fun clearToast() {
+        _uiState.update { it.copy(toast = null) }
     }
 
     companion object {

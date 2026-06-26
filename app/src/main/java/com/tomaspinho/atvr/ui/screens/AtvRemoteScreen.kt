@@ -80,6 +80,12 @@ fun AtvRemoteScreen(
             deviceViewModel.clearToast()
         }
     }
+    LaunchedEffect(remoteState.toast) {
+        remoteState.toast?.let {
+            snackbarHostState.showSnackbar(it)
+            remoteControlViewModel.clearToast()
+        }
+    }
     LaunchedEffect(deviceState.connectionState, deviceState.connectedDeviceId) {
         val connected = deviceState.connectionState == com.tomaspinho.atvr.domain.ConnectionState.CONNECTED
         remoteControlViewModel.setConnectedDevice(deviceState.connectedDeviceId, connected)
