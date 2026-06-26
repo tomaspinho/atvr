@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -5,6 +7,31 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.chaquopy)
 }
+
+// Resolve machine-specific paths in priority order:
+//   env var > local.properties > tool auto-detection
+//
+// Set these env vars to override:
+//   ATVR_BUILD_PYTHON  — path to a Python 3.12 interpreter (for Chaquopy)
+//   ATVR_ANDROID_SDK   — path to the Android SDK root
+//
+// Or set in local.properties (gitignored):
+//   buildPython=/path/to/python3.12
+//   sdk.dir=/path/to/android-sdk
+
+fun resolveFromEnvOrLocalProps(key: String, envVar: String): String? {
+    System.getenv(envVar)?.let { return it }
+    return try {
+        val props = Properties()
+        val localProps = project.rootProject.file("local.properties")
+        if (localProps.exists()) {
+            props.load(localProps.inputStream())
+            props.getProperty(key)
+        } else null
+    } catch (e: Exception) { null }
+}
+
+val buildPythonPath: String? = resolveFromEnvOrLocalProps("buildPython", "BUILD_PYTHON")
 
 android {
     namespace = "com.tomaspinho.atvr"
@@ -59,7 +86,9 @@ chaquopy {
         // No local/cross-compiled wheels needed — everything resolves from
         // Chaquopy's Android wheel repo (native) or PyPI (pure-Python).
         version = "3.12"
-        buildPython("/home/tomas/.local/share/mise/installs/python/3.12.13/bin/python")
+        if (!buildPythonPath.isNullOrEmpty()) {
+            buildPython(buildPythonPath)
+        }
         pip {
             options("--no-deps")
             install("pyatv==0.16.1")
