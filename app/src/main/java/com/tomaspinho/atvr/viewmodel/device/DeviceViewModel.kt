@@ -275,10 +275,14 @@ class DeviceViewModel(
                                 if (backoffMatch != null) {
                                     val seconds = backoffMatch.groupValues[1]
                                     _uiState.update { it.copy(toast = "Apple TV requires a $seconds-second wait before retrying pairing. Please try again in $seconds seconds.") }
+                                    // Stop the flow entirely — don't advance to FlowCompleted.
+                                    pairingHandler.cancel()
+                                    pairingCollectJob?.cancel()
+                                    pairingCollectJob = null
                                 } else {
                                     _uiState.update { it.copy(toast = "Pairing failed: $msg") }
+                                    pairingHandler.failCurrentProtocol()
                                 }
-                                pairingHandler.failCurrentProtocol()
                             }
                     }
                     is PairingState.WaitingForPin -> {
