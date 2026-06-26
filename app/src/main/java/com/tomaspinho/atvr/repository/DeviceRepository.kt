@@ -154,22 +154,13 @@ class DeviceRepository(private val credentialStorage: CredentialStorage) {
     }
 
     private fun parseMediaInfo(r: PythonResult.Ok): MediaInfo? {
-        // Python returns {device_state, media_type, position, total_time, metadata:{title,artist,album,app,artwork}}.
-        val metadataRaw = r.payload["metadata"]
-        val metadata: Map<String, String?> = if (metadataRaw != null) {
-            runCatching {
-                val o = json.parseToJsonElement(metadataRaw) as JsonObject
-                o.toMap().mapValues { (_, v) -> (v as? JsonPrimitive)?.contentOrNull }
-            }.getOrDefault(emptyMap())
-        } else {
-            // Fallback: flat shape (used by push callback parser).
-            r.payload
-        }
-        val title = metadata["title"] ?: r.payload["title"]
-        val artist = metadata["artist"] ?: r.payload["artist"]
-        val album = metadata["album"] ?: r.payload["album"]
-        val app = metadata["app"] ?: r.payload["app"]
-        val artwork = metadata["artwork"] ?: r.payload["artwork"]
+        // Python returns a flat dict: {device_state, media_type, position,
+        // total_time, title, artist, album, app, artwork}.
+        val title = r.payload["title"]
+        val artist = r.payload["artist"]
+        val album = r.payload["album"]
+        val app = r.payload["app"]
+        val artwork = r.payload["artwork"]
         val position = r.payload["position"]?.toLongOrNull()
         val totalTime = r.payload["total_time"]?.toLongOrNull()
         val deviceState = r.payload["device_state"]

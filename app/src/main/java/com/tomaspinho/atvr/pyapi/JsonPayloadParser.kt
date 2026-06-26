@@ -17,13 +17,13 @@ object JsonPayloadParser {
     fun parseMedia(raw: String): MediaInfo? {
         return runCatching {
             val o = json.parseToJsonElement(raw) as JsonObject
-            val metadata = o["metadata"] as? JsonObject
+            // pyatv 0.16.x Playing has flat properties — no nested metadata.
             MediaInfo(
-                title = metadata?.get("title")?.jsonPrimitive?.contentOrNull,
-                artist = metadata?.get("artist")?.jsonPrimitive?.contentOrNull,
-                album = metadata?.get("album")?.jsonPrimitive?.contentOrNull,
-                app = metadata?.get("app")?.jsonPrimitive?.contentOrNull,
-                artwork = metadata?.get("artwork")?.jsonPrimitive?.contentOrNull,
+                title = o["title"]?.jsonPrimitive?.contentOrNull,
+                artist = o["artist"]?.jsonPrimitive?.contentOrNull,
+                album = o["album"]?.jsonPrimitive?.contentOrNull,
+                app = o["app"]?.jsonPrimitive?.contentOrNull,
+                artwork = o["artwork"]?.jsonPrimitive?.contentOrNull,
                 position = o["position"]?.jsonPrimitive?.contentOrNull?.toLongOrNull(),
                 totalTime = o["total_time"]?.jsonPrimitive?.contentOrNull?.toLongOrNull(),
                 deviceState = o["device_state"]?.jsonPrimitive?.contentOrNull,

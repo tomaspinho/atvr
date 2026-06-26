@@ -150,17 +150,7 @@ def _device(identifier: str) -> "interface.AppleTV":
 
 
 def _playstatus_to_dict(ps) -> Dict[str, Any]:
-    def _media(metadata) -> Dict[str, Any]:
-        if metadata is None:
-            return {}
-        return {
-            "title": metadata.title,
-            "artist": metadata.artist,
-            "album": metadata.album,
-            "app": metadata.app.name if getattr(metadata, "app", None) else None,
-            "artwork": None,
-        }
-
+    # In pyatv 0.16.x, Playing has flat properties (no nested .metadata).
     return {
         "device_state": str(ps.device_state) if ps.device_state else None,
         "media_type": str(ps.media_type) if ps.media_type else None,
@@ -168,7 +158,11 @@ def _playstatus_to_dict(ps) -> Dict[str, Any]:
         "total_time": ps.total_time,
         "repeat": str(ps.repeat) if ps.repeat else None,
         "shuffle": str(ps.shuffle) if ps.shuffle else None,
-        "metadata": _media(ps.metadata),
+        "title": ps.title,
+        "artist": ps.artist,
+        "album": ps.album,
+        "app": None,
+        "artwork": None,
     }
 
 
