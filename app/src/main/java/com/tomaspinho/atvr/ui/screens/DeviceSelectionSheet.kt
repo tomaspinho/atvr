@@ -70,7 +70,15 @@ fun DeviceSelectionSheet(
                     Icon(Icons.Filled.BugReport, contentDescription = "Debug")
                 }
             }
-            LazyColumn(modifier = Modifier.fillMaxHeight(0.5f)) {
+            if (isScanning && devices.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxWidth().fillMaxHeight(0.4f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    LoadingIndicator(size = 64, strokeWidth = 6)
+                }
+            } else {
+                LazyColumn(modifier = Modifier.fillMaxHeight(0.5f)) {
                 items(devices, key = { it.identifier }) { device ->
                     val connected = device.identifier == connectedDeviceId
                     Row(
@@ -106,6 +114,7 @@ fun DeviceSelectionSheet(
                         }
                     }
                 }
+            }
             }
             Spacer(Modifier.size(8.dp))
             if (isScanning) {
