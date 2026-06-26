@@ -271,15 +271,18 @@ class DeviceViewModel(
                             .onFailure { err ->
                                 android.util.Log.e("DeviceViewModel", "startPairing failed", err)
                                 val msg = err.message ?: "Pairing failed"
+                                android.util.Log.d("DeviceViewModel", "error message: $msg")
                                 val backoffMatch = Regex("BackOff=(\\d+)s").find(msg)
                                 if (backoffMatch != null) {
                                     val seconds = backoffMatch.groupValues[1]
-                                    _uiState.update { it.copy(toast = "Apple TV requires a $seconds-second wait before retrying pairing. Please try again in $seconds seconds.") }
-                                    // Stop the flow entirely — don't advance to FlowCompleted.
+                                    val toastMsg = "Apple TV requires a $seconds-second wait before retrying pairing. Please try again in $seconds seconds."
+                                    android.util.Log.d("DeviceViewModel", "setting backoff toast: $toastMsg")
+                                    _uiState.update { it.copy(toast = toastMsg) }
                                     pairingHandler.cancel()
                                     pairingCollectJob?.cancel()
                                     pairingCollectJob = null
                                 } else {
+                                    android.util.Log.d("DeviceViewModel", "setting error toast: Pairing failed: $msg")
                                     _uiState.update { it.copy(toast = "Pairing failed: $msg") }
                                     pairingHandler.failCurrentProtocol()
                                 }
