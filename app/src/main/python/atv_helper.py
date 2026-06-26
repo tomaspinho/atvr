@@ -279,6 +279,7 @@ def is_connected(identifier: str) -> bool:
 
 def start_pairing_sync(identifier: str, protocol: str = "mrp") -> str:
     proto = _PROTOCOL_MAP.get(protocol, Protocol.MRP)
+    print(f"atv_helper: start_pairing_sync(identifier={identifier}, protocol={protocol})")
 
     async def _begin():
         loop = _get_loop()
@@ -294,6 +295,7 @@ def start_pairing_sync(identifier: str, protocol: str = "mrp") -> str:
         if not configs:
             raise RuntimeError(f"Device {identifier} not found")
         cfg = configs[0]
+        print(f"atv_helper: found device {cfg.name}, services={[s.protocol.value for s in cfg.services]}")
         pairing = await pyatv.pair(cfg, proto, loop=loop)
         await pairing.begin()
         return pairing

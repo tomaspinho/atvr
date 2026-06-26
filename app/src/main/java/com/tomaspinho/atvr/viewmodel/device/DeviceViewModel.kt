@@ -252,22 +252,31 @@ class DeviceViewModel(
     // ----------------------------------------------------------------- #
 
     private fun startPairing(device: ScannedDevice, protocol: String) {
+        android.util.Log.d("DeviceViewModel", "startPairing: device=${device.name} id=${device.identifier} protocol=$protocol")
         pairingHandler.startPairingFlow(device.identifier, device.name, listOf(protocol))
         viewModelScope.launch {
             pairingHandler.pairingState.collect { state ->
+                android.util.Log.d("DeviceViewModel", "pairingState = $state")
                 when (state) {
                     is PairingState.Pairing -> {
+                        android.util.Log.d("DeviceViewModel", "Calling repository.startPairing(${device.identifier}, ${state.protocol})")
                         repository.startPairing(device.identifier, state.protocol)
-                            .onSuccess { key -> pairingHandler.awaitingPin(key, state.protocol) }
-                            .onFailure {
-                                _uiState.update { it.copy(toast = "Pairing failed: ${it.toast ?: "start failed"}") }
+                            .onSuccess { key ->
+                                android.util.Log.d("DeviceViewModel", "startPairing success, sessionKey=$key")
+                                pairingHandler.awaitingPin(key, state.protocol)
+                            }
+                            .onFailure { err ->
+                                android.util.Log.e("DeviceViewModel", "startPairing failed", err)
+                                _uiState.update { it.copy(toast = "Pairing failed: ${err.message}") }
                                 pairingHandler.failCurrentProtocol()
                             }
                     }
                     is PairingState.WaitingForPin -> {
+                        android.util.Log.d("DeviceViewModel", "WaitingForPin, updating uiState")
                         _uiState.update { it.copy(pairingState = state) }
                     }
                     is PairingState.FlowCompleted -> {
+                        android.util.Log.d("DeviceViewModel", "FlowCompleted, connecting")
                         repository.connectToDevice(state.identifier)
                         _uiState.update {
                             it.copy(
