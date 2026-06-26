@@ -25,7 +25,7 @@ sealed interface DeviceIntent {
     data class ScanByIp(val ip: String) : DeviceIntent
     data class ConnectToDevice(val identifier: String, val name: String) : DeviceIntent
     data object DisconnectDevice : DeviceIntent
-    data class StartPairing(val device: ScannedDevice, val protocol: String = "mrp") : DeviceIntent
+    data class StartPairing(val device: ScannedDevice, val protocol: String = "auto") : DeviceIntent
     data class SubmitPairingPin(val pin: String) : DeviceIntent
     data object CancelPairing : DeviceIntent
     data class ClearCredentials(val identifier: String, val name: String) : DeviceIntent

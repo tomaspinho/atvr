@@ -278,8 +278,11 @@ def is_connected(identifier: str) -> bool:
 
 
 def start_pairing_sync(identifier: str, protocol: str = "mrp") -> str:
-    proto = _PROTOCOL_MAP.get(protocol, Protocol.MRP)
     print(f"atv_helper: start_pairing_sync(identifier={identifier}, protocol={protocol})")
+
+    # If protocol is "auto", pick the first pairable service the device has.
+    # Modern Apple TVs (tvOS 15+) dropped MRP — they use Companion/AirPlay.
+    pairable = ["mrp", "companion", "airplay", "dmap", "raop"]
 
     async def _begin():
         loop = _get_loop()
@@ -295,19 +298,34 @@ def start_pairing_sync(identifier: str, protocol: str = "mrp") -> str:
         if not configs:
             raise RuntimeError(f"Device {identifier} not found")
         cfg = configs[0]
-        print(f"atv_helper: found device {cfg.name}, services={[s.protocol.value for s in cfg.services]}")
+        available = [s.protocol.value for s in cfg.services]
+        print(f"atv_helper: found device {cfg.name}, services={available}")
+
+        # Resolve which protocol to pair with.
+        if protocol == "auto":
+            proto_str = next((p for p in pairable if p in available), None)
+            if proto_str is None:
+                raise RuntimeError(f"No pairable service found (available: {available})")
+        else:
+            proto_str = protocol
+
+        proto = _PROTOCOL_MAP.get(proto_str, Protocol.MRP)
+        if proto_str not in available:
+            raise RuntimeError(f"Service {proto_str} not available on device (available: {available})")
+
+        print(f"atv_helper: pairing with protocol={proto_str}")
         pairing = await pyatv.pair(cfg, proto, loop=loop)
         await pairing.begin()
-        return pairing
+        return pairing, proto_str
 
     try:
-        pairing = _run_sync(_begin())
+        pairing, actual_proto = _run_sync(_begin())
     except Exception as exc:
         return _error(f"start_pairing failed: {exc}")
 
-    session_key = f"{identifier}_{protocol}"
+    session_key = f"{identifier}_{actual_proto}"
     _pairing_sessions[session_key] = pairing
-    return _ok(session_key=session_key)
+    return _ok(session_key=session_key, protocol=actual_proto)
 
 
 def finish_pairing_sync(session_key: str, pin: str) -> str:
