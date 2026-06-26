@@ -338,24 +338,9 @@ def start_pairing_sync(identifier: str, protocol: str = "auto") -> str:
             raise RuntimeError(f"Service {proto_str} not available on device (available: {list(available.keys())})")
 
         print(f"atv_helper: pairing with protocol={proto_str}")
-
-        # Retry on backoff errors — the Apple TV enforces a cooldown after
-        # a failed/cancelled pairing attempt (e.g. "BackOff=4s").
-        max_retries = 3
-        for attempt in range(max_retries):
-            try:
-                pairing = await pyatv.pair(cfg, proto, loop=loop)
-                await pairing.begin()
-                return pairing, proto_str
-            except Exception as exc:
-                msg = str(exc)
-                backoff_match = re.search(r"BackOff=(\d+)s", msg)
-                if backoff_match and attempt < max_retries - 1:
-                    wait = int(backoff_match.group(1))
-                    print(f"atv_helper: backoff {wait}s, retrying (attempt {attempt + 1}/{max_retries})")
-                    await asyncio.sleep(wait + 1)
-                    continue
-                raise
+        pairing = await pyatv.pair(cfg, proto, loop=loop)
+        await pairing.begin()
+        return pairing, proto_str
 
     try:
         pairing, actual_proto = _run_sync(_begin())

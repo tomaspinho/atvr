@@ -270,7 +270,14 @@ class DeviceViewModel(
                             }
                             .onFailure { err ->
                                 android.util.Log.e("DeviceViewModel", "startPairing failed", err)
-                                _uiState.update { it.copy(toast = "Pairing failed: ${err.message}") }
+                                val msg = err.message ?: "Pairing failed"
+                                val backoffMatch = Regex("BackOff=(\\d+)s").find(msg)
+                                if (backoffMatch != null) {
+                                    val seconds = backoffMatch.groupValues[1]
+                                    _uiState.update { it.copy(toast = "Apple TV requires a $seconds-second wait before retrying pairing. Please try again in $seconds seconds.") }
+                                } else {
+                                    _uiState.update { it.copy(toast = "Pairing failed: $msg") }
+                                }
                                 pairingHandler.failCurrentProtocol()
                             }
                     }
