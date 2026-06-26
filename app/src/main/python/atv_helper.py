@@ -250,7 +250,7 @@ def connect_to_device_sync(identifier: str, credentials: str = None) -> str:
     except Exception as exc:  # pragma: no cover
         print(f"atv_helper push start skipped: {exc}")
 
-    return _ok(name=atv.name)
+    return _ok(name=atv._config.name)
 
 
 def disconnect_device(identifier: str) -> str:
