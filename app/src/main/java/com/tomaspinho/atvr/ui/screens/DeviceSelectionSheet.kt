@@ -72,7 +72,7 @@ fun DeviceSelectionSheet(
             }
             if (isScanning && devices.isEmpty()) {
                 Box(
-                    modifier = Modifier.fillMaxWidth().fillMaxHeight(0.4f),
+                    modifier = Modifier.fillMaxWidth().fillMaxHeight(0.5f),
                     contentAlignment = Alignment.Center
                 ) {
                     LoadingIndicator(size = 64, strokeWidth = 6)
@@ -114,14 +114,14 @@ fun DeviceSelectionSheet(
                         }
                     }
                 }
-            }
+                }
             }
             Spacer(Modifier.size(8.dp))
-            if (isScanning) {
+            if (isScanning && devices.isNotEmpty()) {
                 Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                     LoadingIndicator(size = 32)
                 }
-            } else {
+            } else if (!isScanning) {
                 Button(onClick = onScan, modifier = Modifier.fillMaxWidth()) {
                     Text("Scan for Devices")
                 }
