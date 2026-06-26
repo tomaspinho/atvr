@@ -187,7 +187,7 @@ def scan_devices_sync(timeout: float = 5.0, host: Optional[str] = None) -> str:
 
     devices = []
     for cfg in configs:
-        services = [s.protocol.value for s in cfg.services]
+        services = [s.protocol.name.lower() for s in cfg.services]
         devices.append({
             "name": cfg.name or "Apple TV",
             "address": str(cfg.address),
@@ -298,20 +298,22 @@ def start_pairing_sync(identifier: str, protocol: str = "mrp") -> str:
         if not configs:
             raise RuntimeError(f"Device {identifier} not found")
         cfg = configs[0]
-        available = [s.protocol.value for s in cfg.services]
-        print(f"atv_helper: found device {cfg.name}, services={available}")
+        # Service protocol is a Protocol enum; .name gives "AirPlay", .value gives 3.
+        # Normalize to lowercase names for comparison.
+        available = {s.protocol.name.lower(): s.protocol for s in cfg.services}
+        print(f"atv_helper: found device {cfg.name}, services={list(available.keys())}")
 
         # Resolve which protocol to pair with.
         if protocol == "auto":
             proto_str = next((p for p in pairable if p in available), None)
             if proto_str is None:
-                raise RuntimeError(f"No pairable service found (available: {available})")
+                raise RuntimeError(f"No pairable service found (available: {list(available.keys())})")
         else:
             proto_str = protocol
 
         proto = _PROTOCOL_MAP.get(proto_str, Protocol.MRP)
         if proto_str not in available:
-            raise RuntimeError(f"Service {proto_str} not available on device (available: {available})")
+            raise RuntimeError(f"Service {proto_str} not available on device (available: {list(available.keys())})")
 
         print(f"atv_helper: pairing with protocol={proto_str}")
         pairing = await pyatv.pair(cfg, proto, loop=loop)
