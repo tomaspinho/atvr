@@ -66,7 +66,7 @@ object PyApi {
             call { module().callAttr("disconnect_device", identifier).toString() }
         }
 
-    suspend fun startPairing(identifier: String, protocol: String = "mrp"): PythonResult =
+    suspend fun startPairing(identifier: String, protocol: String = "auto"): PythonResult =
         withContext(Dispatchers.IO) {
             call { module().callAttr("start_pairing_sync", identifier, protocol).toString() }
         }

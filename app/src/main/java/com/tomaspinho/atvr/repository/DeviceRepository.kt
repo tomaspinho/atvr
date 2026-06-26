@@ -100,7 +100,7 @@ class DeviceRepository(private val credentialStorage: CredentialStorage) {
     // Pairing
     // --------------------------------------------------------------------- #
 
-    suspend fun startPairing(identifier: String, protocol: String = "mrp"): Result<String> =
+    suspend fun startPairing(identifier: String, protocol: String = "auto"): Result<String> =
         when (val r = PyApi.startPairing(identifier, protocol)) {
             is PythonResult.Ok -> Result.success(r.payload["session_key"] ?: "")
             is PythonResult.Err -> Result.failure(IllegalStateException(r.message))
