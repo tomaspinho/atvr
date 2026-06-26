@@ -21,7 +21,9 @@ import asyncio
 import base64
 import inspect
 import json
+import re
 import threading
+import time
 from typing import Any, Dict, Optional
 
 import pyatv
@@ -294,16 +296,22 @@ def is_connected(identifier: str) -> bool:
     return identifier in _connected_devices
 
 
-def start_pairing_sync(identifier: str, protocol: str = "mrp") -> str:
+def start_pairing_sync(identifier: str, protocol: str = "auto") -> str:
     print(f"atv_helper: start_pairing_sync(identifier={identifier}, protocol={protocol})")
 
-    # If protocol is "auto", pick the first pairable service the device has.
-    # Modern Apple TVs (tvOS 15+) dropped MRP — they use Companion/AirPlay.
+    # Close any existing pairing sessions for this device before starting anew.
+    for key in list(_pairing_sessions.keys()):
+        if key.startswith(f"{identifier}_"):
+            try:
+                _run_sync(_pairing_sessions[key].close())
+            except Exception:
+                pass
+            _pairing_sessions.pop(key, None)
+
     pairable = ["mrp", "companion", "airplay", "dmap", "raop"]
 
     async def _begin():
         loop = _get_loop()
-        # Try scanning by identifier first, fall back to IP address.
         configs = await pyatv.scan(identifier=identifier, loop=loop, timeout=5.0)
         if not configs:
             try:
@@ -315,12 +323,9 @@ def start_pairing_sync(identifier: str, protocol: str = "mrp") -> str:
         if not configs:
             raise RuntimeError(f"Device {identifier} not found")
         cfg = configs[0]
-        # Service protocol is a Protocol enum; .name gives "AirPlay", .value gives 3.
-        # Normalize to lowercase names for comparison.
         available = {s.protocol.name.lower(): s.protocol for s in cfg.services}
         print(f"atv_helper: found device {cfg.name}, services={list(available.keys())}")
 
-        # Resolve which protocol to pair with.
         if protocol == "auto":
             proto_str = next((p for p in pairable if p in available), None)
             if proto_str is None:
@@ -333,9 +338,24 @@ def start_pairing_sync(identifier: str, protocol: str = "mrp") -> str:
             raise RuntimeError(f"Service {proto_str} not available on device (available: {list(available.keys())})")
 
         print(f"atv_helper: pairing with protocol={proto_str}")
-        pairing = await pyatv.pair(cfg, proto, loop=loop)
-        await pairing.begin()
-        return pairing, proto_str
+
+        # Retry on backoff errors — the Apple TV enforces a cooldown after
+        # a failed/cancelled pairing attempt (e.g. "BackOff=4s").
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                pairing = await pyatv.pair(cfg, proto, loop=loop)
+                await pairing.begin()
+                return pairing, proto_str
+            except Exception as exc:
+                msg = str(exc)
+                backoff_match = re.search(r"BackOff=(\d+)s", msg)
+                if backoff_match and attempt < max_retries - 1:
+                    wait = int(backoff_match.group(1))
+                    print(f"atv_helper: backoff {wait}s, retrying (attempt {attempt + 1}/{max_retries})")
+                    await asyncio.sleep(wait + 1)
+                    continue
+                raise
 
     try:
         pairing, actual_proto = _run_sync(_begin())
