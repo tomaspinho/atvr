@@ -1,5 +1,7 @@
 package com.tomaspinho.atvr.viewmodel.device
 
+import android.content.Context
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -69,11 +71,17 @@ data class DeviceUiState(
  * were folded into this.
  */
 class DeviceViewModel(
+    private val appContext: Context,
     private val repository: DeviceRepository,
     private val settingsRepository: SettingsRepository,
     private val credentialStorage: CredentialStorage,
     private val pairingHandler: PairingHandler = PairingHandler()
 ) : ViewModel() {
+
+    private fun showToast(message: String) {
+        _uiState.update { it.copy(toast = message) }
+        Toast.makeText(appContext, message, Toast.LENGTH_LONG).show()
+    }
 
     private var pairingCollectJob: kotlinx.coroutines.Job? = null
 
@@ -186,7 +194,7 @@ class DeviceViewModel(
             val result = repository.scanDevices(host)
             _uiState.update { it.copy(isScanning = false) }
             result.onSuccess { devices -> _uiState.update { it.copy(discoveredDevices = devices) } }
-                .onFailure { _uiState.update { it.copy(toast = it.toast ?: "Scan failed") } }
+                .onFailure { showToast("Scan failed") }
         }
     }
 
@@ -215,11 +223,9 @@ class DeviceViewModel(
                 registerListeners(identifier)
             }.onFailure {
                 _uiState.update {
-                    it.copy(
-                        connectionState = ConnectionState.DISCONNECTED,
-                        toast = it.toast ?: "Connect failed"
-                    )
+                    it.copy(connectionState = ConnectionState.DISCONNECTED)
                 }
+                showToast("Connect failed")
             }
         }
     }
@@ -277,13 +283,13 @@ class DeviceViewModel(
                                     val seconds = backoffMatch.groupValues[1]
                                     val toastMsg = "Apple TV requires a $seconds-second wait before retrying pairing. Please try again in $seconds seconds."
                                     android.util.Log.d("DeviceViewModel", "setting backoff toast: $toastMsg")
-                                    _uiState.update { it.copy(toast = toastMsg) }
+                                    showToast(toastMsg)
                                     pairingHandler.cancel()
                                     pairingCollectJob?.cancel()
                                     pairingCollectJob = null
                                 } else {
                                     android.util.Log.d("DeviceViewModel", "setting error toast: Pairing failed: $msg")
-                                    _uiState.update { it.copy(toast = "Pairing failed: $msg") }
+                                    showToast("Pairing failed: $msg")
                                     pairingHandler.failCurrentProtocol()
                                 }
                             }
@@ -305,7 +311,7 @@ class DeviceViewModel(
                         }
                         pairingHandler.cancel()
                     }
-                    is PairingState.Error -> _uiState.update { it.copy(toast = state.message) }
+                    is PairingState.Error -> showToast(state.message)
                     else -> Unit
                 }
             }
@@ -342,7 +348,7 @@ class DeviceViewModel(
     private fun clearCredentials(identifier: String, name: String) {
         viewModelScope.launch {
             credentialStorage.clearCredentials(identifier)
-            _uiState.update { it.copy(toast = "Forgot $name") }
+            showToast("Forgot $name")
         }
     }
 
@@ -405,7 +411,7 @@ class DeviceViewModel(
         viewModelScope.launch {
             repository.launchApp(id, bundleId)
                 .onSuccess { _uiState.update { it.copy(showAppSheet = false, toast = "Launched $name") } }
-                .onFailure { _uiState.update { it.copy(toast = "Launch failed") } }
+                .onFailure { showToast("Launch failed") }
         }
     }
 

@@ -11,6 +11,6 @@ class DeviceViewModelFactory : ViewModelProvider.Factory {
         val credentialStorage = com.tomaspinho.atvr.data.CredentialStorage(app)
         val settingsRepository = com.tomaspinho.atvr.repository.SettingsRepository(app)
         val repository = com.tomaspinho.atvr.repository.DeviceRepository(credentialStorage)
-        return DeviceViewModel(repository, settingsRepository, credentialStorage) as T
+        return DeviceViewModel(app.applicationContext, repository, settingsRepository, credentialStorage) as T
     }
 }
