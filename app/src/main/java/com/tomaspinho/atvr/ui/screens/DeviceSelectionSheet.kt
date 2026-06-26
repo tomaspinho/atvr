@@ -19,6 +19,8 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Tv
 import androidx.compose.material3.Button
+import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -53,6 +55,7 @@ fun DeviceSelectionSheet(
     onDismiss: () -> Unit,
     onDeviceSelected: (String, String) -> Unit,
     onRemoveDevice: (String, String) -> Unit,
+    onPair: (ScannedDevice) -> Unit,
     onScan: () -> Unit,
     onManualIp: () -> Unit,
     onToggleShowUnknown: (Boolean) -> Unit
@@ -85,9 +88,20 @@ fun DeviceSelectionSheet(
                         }
                         if (connected) {
                             Icon(Icons.Filled.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                        } else if (savedProtocols[device.identifier]?.isNotEmpty() == true) {
-                            IconButton(onClick = { onRemoveDevice(device.identifier, device.name) }) {
-                                Icon(Icons.Filled.Delete, contentDescription = "Forget", tint = MaterialTheme.colorScheme.error)
+                        } else {
+                            val hasCreds = savedProtocols[device.identifier]?.isNotEmpty() == true
+                            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                if (!hasCreds) {
+                                    OutlinedButton(
+                                        onClick = { onPair(device) },
+                                        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 12.dp, vertical = 4.dp)
+                                    ) { Text("Pair") }
+                                }
+                                if (hasCreds) {
+                                    IconButton(onClick = { onRemoveDevice(device.identifier, device.name) }) {
+                                        Icon(Icons.Filled.Delete, contentDescription = "Forget", tint = MaterialTheme.colorScheme.error)
+                                    }
+                                }
                             }
                         }
                     }
