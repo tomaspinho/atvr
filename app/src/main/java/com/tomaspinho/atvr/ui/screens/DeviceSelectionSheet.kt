@@ -58,7 +58,8 @@ fun DeviceSelectionSheet(
     onPair: (ScannedDevice) -> Unit,
     onScan: () -> Unit,
     onManualIp: () -> Unit,
-    onToggleShowUnknown: (Boolean) -> Unit
+    onToggleShowUnknown: (Boolean) -> Unit,
+    pairingBackoffSeconds: Int = 0
 ) {
     if (!visible) return
     val sheetState = rememberModalBottomSheetState()
@@ -102,8 +103,11 @@ fun DeviceSelectionSheet(
                                 if (!hasCreds) {
                                     OutlinedButton(
                                         onClick = { onPair(device) },
+                                        enabled = pairingBackoffSeconds == 0,
                                         contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 12.dp, vertical = 4.dp)
-                                    ) { Text("Pair") }
+                                    ) {
+                                        Text(if (pairingBackoffSeconds > 0) "Pair (${pairingBackoffSeconds}s)" else "Pair")
+                                    }
                                 }
                                 if (hasCreds) {
                                     IconButton(onClick = { onRemoveDevice(device.identifier, device.name) }) {

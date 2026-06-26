@@ -61,7 +61,8 @@ data class DeviceUiState(
     val showAppSheet: Boolean = false,
     val keyboardVisible: Boolean = false,
     val keyboardInput: String = "",
-    val toast: String? = null
+    val toast: String? = null,
+    val pairingBackoffSeconds: Int = 0
 )
 
 /**
@@ -78,12 +79,25 @@ class DeviceViewModel(
     private val pairingHandler: PairingHandler = PairingHandler()
 ) : ViewModel() {
 
+    private var pairingCollectJob: kotlinx.coroutines.Job? = null
+    private var backoffJob: kotlinx.coroutines.Job? = null
+
     private fun showToast(message: String) {
         _uiState.update { it.copy(toast = message) }
         Toast.makeText(appContext, message, Toast.LENGTH_LONG).show()
     }
 
-    private var pairingCollectJob: kotlinx.coroutines.Job? = null
+    private fun startBackoffCountdown(seconds: Int) {
+        backoffJob?.cancel()
+        _uiState.update { it.copy(pairingBackoffSeconds = seconds) }
+        backoffJob = viewModelScope.launch {
+            for (remaining in seconds downTo 1) {
+                _uiState.update { it.copy(pairingBackoffSeconds = remaining) }
+                kotlinx.coroutines.delay(1000)
+            }
+            _uiState.update { it.copy(pairingBackoffSeconds = 0) }
+        }
+    }
 
     private val _uiState = MutableStateFlow(DeviceUiState())
     val uiState: StateFlow<DeviceUiState> = _uiState.asStateFlow()
@@ -280,15 +294,13 @@ class DeviceViewModel(
                                 android.util.Log.d("DeviceViewModel", "error message: $msg")
                                 val backoffMatch = Regex("BackOff=(\\d+)s").find(msg)
                                 if (backoffMatch != null) {
-                                    val seconds = backoffMatch.groupValues[1]
-                                    val toastMsg = "Wait ${seconds}s before retrying pairing."
-                                    android.util.Log.d("DeviceViewModel", "setting backoff toast: $toastMsg")
-                                    showToast(toastMsg)
+                                    val seconds = backoffMatch.groupValues[1].toInt()
+                                    showToast("Wait ${seconds}s before retrying pairing.")
+                                    startBackoffCountdown(seconds)
                                     pairingHandler.cancel()
                                     pairingCollectJob?.cancel()
                                     pairingCollectJob = null
                                 } else {
-                                    android.util.Log.d("DeviceViewModel", "setting error toast: Pairing failed: $msg")
                                     showToast("Pairing failed: $msg")
                                     pairingHandler.failCurrentProtocol()
                                 }

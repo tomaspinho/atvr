@@ -144,7 +144,8 @@ fun AtvRemoteScreen(
                 onPair = { device -> deviceViewModel.onIntent(DeviceIntent.StartPairing(device)) },
                 onScan = { deviceViewModel.onIntent(DeviceIntent.ScanDevices) },
                 onManualIp = { showTroubleshooting = true },
-                onToggleShowUnknown = { deviceViewModel.onIntent(DeviceIntent.ToggleShowUnknownDevices(it)) }
+                onToggleShowUnknown = { deviceViewModel.onIntent(DeviceIntent.ToggleShowUnknownDevices(it)) },
+                pairingBackoffSeconds = deviceState.pairingBackoffSeconds
             )
 
             AppLauncherSheet(
