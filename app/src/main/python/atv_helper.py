@@ -181,7 +181,9 @@ def scan_devices_sync(timeout: float = 5.0, host: Optional[str] = None) -> str:
     async def _scan() -> list:
         kwargs: Dict[str, Any] = {"loop": _get_loop(), "timeout": float(timeout)}
         if host:
-            kwargs["identifier"] = host
+            # `host` is an IP address — use the `hosts` parameter (not
+            # `identifier`, which matches against device UUIDs/MACs).
+            kwargs["hosts"] = [host]
         return await pyatv.scan(**kwargs)
 
     try:
@@ -193,9 +195,9 @@ def scan_devices_sync(timeout: float = 5.0, host: Optional[str] = None) -> str:
     for cfg in configs:
         services = [s.protocol.value for s in cfg.services]
         devices.append({
-            "name": cfg.name,
+            "name": cfg.name or "Apple TV",
             "address": str(cfg.address),
-            "identifier": cfg.identifier,
+            "identifier": cfg.identifier or str(cfg.address),
             "model": str(cfg.device_info.model) if cfg.device_info else None,
             "services": services,
         })
@@ -206,7 +208,17 @@ def connect_to_device_sync(identifier: str, credentials: str = None) -> str:
     """Scan for the device, apply credentials, connect, start listeners."""
     async def _connect():
         loop = _get_loop()
+        # Try scanning by identifier first (matches device UUID/MAC).
         configs = await pyatv.scan(identifier=identifier, loop=loop, timeout=5.0)
+        if not configs:
+            # Fall back to scanning by IP address (identifier may be the
+            # device's address if it had no unique identifier).
+            try:
+                import ipaddress
+                ipaddress.ip_address(identifier)
+                configs = await pyatv.scan(hosts=[identifier], loop=loop, timeout=5.0)
+            except ValueError:
+                pass
         if not configs:
             raise RuntimeError(f"Device {identifier} not found on network")
         cfg = configs[0]

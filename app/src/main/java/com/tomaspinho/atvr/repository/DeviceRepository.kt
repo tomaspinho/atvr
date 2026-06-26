@@ -67,9 +67,10 @@ class DeviceRepository(private val credentialStorage: CredentialStorage) {
         return arr.map { el ->
             val o = el.jsonObject
             ScannedDevice(
-                name = o["name"]?.jsonPrimitive?.contentOrNull ?: "Apple TV",
+                name = o["name"]?.jsonPrimitive?.contentOrNull?.takeIf { it.isNotBlank() } ?: "Apple TV",
                 address = o["address"]?.jsonPrimitive?.contentOrNull ?: "",
-                identifier = o["identifier"]?.jsonPrimitive?.contentOrNull ?: "",
+                identifier = o["identifier"]?.jsonPrimitive?.contentOrNull?.takeIf { it.isNotBlank() }
+                    ?: o["address"]?.jsonPrimitive?.contentOrNull ?: "",
                 model = o["model"]?.jsonPrimitive?.contentOrNull,
                 services = (o["services"] as? JsonArray)?.mapNotNull { (it as? JsonPrimitive)?.contentOrNull }
                     ?: emptyList()

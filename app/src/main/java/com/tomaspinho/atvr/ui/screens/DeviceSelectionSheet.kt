@@ -1,5 +1,6 @@
 package com.tomaspinho.atvr.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -72,6 +73,7 @@ fun DeviceSelectionSheet(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .clickable { onDeviceSelected(device.identifier, device.name) }
                             .padding(vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
