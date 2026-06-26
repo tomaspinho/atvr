@@ -282,7 +282,15 @@ def start_pairing_sync(identifier: str, protocol: str = "mrp") -> str:
 
     async def _begin():
         loop = _get_loop()
+        # Try scanning by identifier first, fall back to IP address.
         configs = await pyatv.scan(identifier=identifier, loop=loop, timeout=5.0)
+        if not configs:
+            try:
+                import ipaddress
+                ipaddress.ip_address(identifier)
+                configs = await pyatv.scan(hosts=[identifier], loop=loop, timeout=5.0)
+            except ValueError:
+                pass
         if not configs:
             raise RuntimeError(f"Device {identifier} not found")
         cfg = configs[0]

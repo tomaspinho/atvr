@@ -259,7 +259,13 @@ class DeviceViewModel(
                     is PairingState.Pairing -> {
                         repository.startPairing(device.identifier, state.protocol)
                             .onSuccess { key -> pairingHandler.awaitingPin(key, state.protocol) }
-                            .onFailure { pairingHandler.failCurrentProtocol() }
+                            .onFailure {
+                                _uiState.update { it.copy(toast = "Pairing failed: ${it.toast ?: "start failed"}") }
+                                pairingHandler.failCurrentProtocol()
+                            }
+                    }
+                    is PairingState.WaitingForPin -> {
+                        _uiState.update { it.copy(pairingState = state) }
                     }
                     is PairingState.FlowCompleted -> {
                         repository.connectToDevice(state.identifier)
