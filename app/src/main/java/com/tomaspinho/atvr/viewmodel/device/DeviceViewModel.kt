@@ -75,6 +75,8 @@ class DeviceViewModel(
     private val pairingHandler: PairingHandler = PairingHandler()
 ) : ViewModel() {
 
+    private var pairingCollectJob: kotlinx.coroutines.Job? = null
+
     private val _uiState = MutableStateFlow(DeviceUiState())
     val uiState: StateFlow<DeviceUiState> = _uiState.asStateFlow()
 
@@ -253,8 +255,9 @@ class DeviceViewModel(
 
     private fun startPairing(device: ScannedDevice, protocol: String) {
         android.util.Log.d("DeviceViewModel", "startPairing: device=${device.name} id=${device.identifier} protocol=$protocol")
+        pairingCollectJob?.cancel()
         pairingHandler.startPairingFlow(device.identifier, device.name, listOf(protocol))
-        viewModelScope.launch {
+        pairingCollectJob = viewModelScope.launch {
             pairingHandler.pairingState.collect { state ->
                 android.util.Log.d("DeviceViewModel", "pairingState = $state")
                 when (state) {
@@ -309,9 +312,12 @@ class DeviceViewModel(
     private fun cancelPairing() {
         val state = pairingHandler.pairingState.value as? PairingState.WaitingForPin
         val key = state?.sessionKey
+        pairingCollectJob?.cancel()
+        pairingCollectJob = null
         viewModelScope.launch {
             if (key != null) repository.cancelPairing(key)
             pairingHandler.cancel()
+            _uiState.update { it.copy(pairingState = PairingState.Idle) }
         }
     }
 
