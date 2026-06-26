@@ -25,7 +25,7 @@ import threading
 from typing import Any, Dict, Optional
 
 import pyatv
-from pyatv import interface
+from pyatv import interface, const
 from pyatv.const import FeatureName, FeatureState, InputAction, Protocol
 from pyatv.interface import PushListener, PowerListener, KeyboardListener
 
@@ -185,14 +185,31 @@ def scan_devices_sync(timeout: float = 5.0, host: Optional[str] = None) -> str:
     except Exception as exc:
         return _error(f"Scan failed: {exc}")
 
+    # Apple TV device models (exclude HomePod, AirPort Express, iTunes, etc.)
+    _APPLE_TV_MODELS = {
+        const.DeviceModel.Gen2, const.DeviceModel.Gen3,
+        const.DeviceModel.Gen4, const.DeviceModel.Gen4K,
+        const.DeviceModel.AppleTV4KGen2, const.DeviceModel.AppleTV4KGen3,
+        const.DeviceModel.AppleTVGen1,
+    }
+
     devices = []
     for cfg in configs:
+        model = cfg.device_info.model if cfg.device_info else const.DeviceModel.Unknown
+        name = cfg.name or ""
+        is_apple_tv = (
+            model in _APPLE_TV_MODELS
+            or name.lower().startswith("appletv")
+            or name.lower().startswith("apple tv")
+        )
+        if not is_apple_tv:
+            continue
         services = [s.protocol.name.lower() for s in cfg.services]
         devices.append({
             "name": cfg.name or "Apple TV",
             "address": str(cfg.address),
             "identifier": cfg.identifier or str(cfg.address),
-            "model": str(cfg.device_info.model) if cfg.device_info else None,
+            "model": str(model),
             "services": services,
         })
     return _ok(devices=devices)
